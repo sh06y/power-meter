@@ -54,9 +54,9 @@ void setup(){
 	
 	// 重置eeprom
 	int powerSupply_status = analogRead(A6);
-	if(powerSupply_status != 1023){
+	if(EEPROM.read(1) != 0 && powerSupply_status != 1023){
 		EEPROM.write(1,0);
-
+	
 		lcd.print("eeprom clear!");
 		digitalWrite(buzzerPin, HIGH);
 		delay(1000);
