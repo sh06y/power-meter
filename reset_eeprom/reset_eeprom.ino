@@ -1,6 +1,8 @@
 #include <EEPROM.h>
 
-void loop(){
+void setup(){
 	EEPROM.write(1,0);
-	delay(100000);
+}
+
+void loop(){
 }
