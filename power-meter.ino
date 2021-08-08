@@ -1,16 +1,20 @@
 #include <Wire.h> 
 #include <LiquidCrystal_I2C.h>
+#include <EEPROM.h>
 
 #define powerledPin A0
 const int ledPin = 13;
 const int buzzerPin = 12;
 const int lcdPin = 2;
+const int sensor_VccPin = 7; // 两个光敏传感器
+
+const int powerSupply_testPin = 5; // 供电情况
 
 // x imp/kWh
 const int powerledPin_rate = 800;
 
 // 最大功率 (w)
-const int maxPower = 6500;
+int maxPower = 7000;
 
 
 const int beep_delay = 400;
@@ -33,6 +37,7 @@ LiquidCrystal_I2C lcd(0x27,16,2);  // set the LCD address to 0x27  0x3F for a 16
 
 
 void setup(){
+	// LCD屏幕初始化
 	pinMode(lcdPin, OUTPUT);
 	digitalWrite(lcdPin, HIGH);
 	lcd.init();  //initialize the lcd
@@ -43,8 +48,19 @@ void setup(){
 	digitalWrite(buzzerPin, LOW);
 	pinMode(ledPin, OUTPUT);
 	digitalWrite(ledPin, LOW);
+	pinMode(sensor_VccPin, OUTPUT);
+	digitalWrite(sensor_VccPin, HIGH);
 
+	// 上电读取eeprom中存储的功率数据
+	int eepromData = EEPROM.read(1) * 39;
+	if(eepromData != 0){
+		// 如果有数据
+		lcd.print(eepromData);
+		maxPower = eepromData;
+	}
+	
 	delay(2000);
+	lcd.clear();
 
 	digitalWrite(ledPin, HIGH);
 	lcd.print("setting...");
@@ -92,9 +108,27 @@ void setup(){
 }
 
 
+void powerSupply_test(){
+	int powerSupply_status = analogRead(A6);
+	// Serial.println(powerSupply_status);
+	if(powerSupply_status != 1023){
+		digitalWrite(sensor_VccPin, LOW);
+		digitalWrite(buzzerPin, LOW);
+		digitalWrite(ledPin, LOW);
+		digitalWrite(lcdPin, LOW);
+
+		int tmp = power / 39;
+		EEPROM.write(1, tmp);
+		delay(1000);
+	}
+	
+}
+
 
 void loop(){
 	while(1){
+		powerSupply_test();
+
 		light1 = analogRead(A0);
 		if(light1 > powerledPin_average){
 			// led on
@@ -137,6 +171,8 @@ void loop(){
 
 
 	while(1){
+		powerSupply_test();
+
 		light1 = analogRead(A0);
 		if(light1 > powerledPin_average){
 			// led on
