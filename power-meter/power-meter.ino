@@ -51,11 +51,25 @@ void setup(){
 	pinMode(sensor_VccPin, OUTPUT);
 	digitalWrite(sensor_VccPin, HIGH);
 
+	
+	// 重置eeprom
+	int powerSupply_status = analogRead(A6);
+	if(powerSupply_status != 1023){
+		EEPROM.write(1,0);
+
+		lcd.print("eeprom clear!");
+		digitalWrite(buzzerPin, HIGH);
+		delay(1000);
+		digitalWrite(buzzerPin, LOW);
+		lcd.clear();
+	}
+
+
 	// 上电读取eeprom中存储的功率数据
 	int eepromData = EEPROM.read(1) * 39;
+	lcd.print(eepromData);
 	if(eepromData != 0){
 		// 如果有数据
-		lcd.print(eepromData);
 		maxPower = eepromData;
 	}
 	
@@ -119,7 +133,9 @@ void powerSupply_test(){
 
 		int tmp = power / 39;
 		EEPROM.write(1, tmp);
-		delay(1000);
+		delay(5000);
+
+
 	}
 	
 }
